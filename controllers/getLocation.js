@@ -9,6 +9,7 @@ exports.getAllCountryNames = async (req, res) => {
         success: true,
         message: "Retrieved successfully",
         data: countries,
+        status: 200
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
