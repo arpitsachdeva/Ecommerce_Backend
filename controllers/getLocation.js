@@ -7,7 +7,8 @@ exports.getAllCountryNames = async (req, res) => {
     const countries = await Country.find({}, 'name'); // Retrieve only the name field
     return res.status(200).json({
         success: true,
-        country: countries
+        message: "Retrieved successfully",
+        data: countries,
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -29,7 +30,9 @@ exports.getStatesByCountry = async (req,res) => {
 
         return res.status(200).json({
             success: true,
-            states: stateNames
+            message:"Retrieved successfully",
+            data: stateNames,
+            status: 200,
         });
 
     }catch(error){
@@ -65,7 +68,9 @@ exports.getCitiesByStateAndCountry = async (req,res) =>{
 
         return res.status(200).json({
             success: true,
-            cities: cityNames
+            data: cityNames,
+            message:"Retrieved successfully",
+            status: 200,
         })
 
     }catch(error){
