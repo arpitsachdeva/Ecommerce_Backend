@@ -3,7 +3,6 @@ const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid'); // Import UUID library
 
-
 // For generating slug
 function generateSlug(title) {
     return title
@@ -14,7 +13,7 @@ function generateSlug(title) {
 
 // For uploading image to server
 async function uploadFileToServer(file, flag) {
-    const fileName = `${uuidv4()}_${Date.now()}${path.extname(file.name)}`; // Ensure unique file names
+    const fileName = file.name; // Use original file name
     let filePath;
     if(flag === 0){
         filePath = path.join(__dirname, '../productFiles/image', fileName); // path of server
@@ -38,11 +37,13 @@ async function uploadFileToServer(file, flag) {
 
 // For uploading multiple images to server
 async function uploadFilesToServer(files) {
+    if (!files || !Array.isArray(files)) {
+        return []; // Return an empty array if no files are provided
+    }
     const flag = 1;
-    const uploads = files.map(file => uploadFileToServer(file , flag));
+    const uploads = files.map(file => uploadFileToServer(file, flag));
     return await Promise.all(uploads);
 }
-
 
 // Async function to add product
 exports.addProduct = async (req, res) => {
@@ -54,29 +55,37 @@ exports.addProduct = async (req, res) => {
         const slug = generateSlug(title);
         console.log("Generated slug:", slug);
 
-        const image = req.files.imageFile;
-        console.log("Image", image);
+        // Check for imageFile in request
+        let imageUrl = null;
+        if (req.files && req.files.imageFile) {
+            const image = req.files.imageFile;
+            console.log("Image", image);
 
-        // Upload image to server
-        const flag = 0;
-        const imageFilePath = await uploadFileToServer(image, flag);
-        console.log("Image file path:", imageFilePath);
+            // Upload image to server
+            const flag = 0;
+            const imageFilePath = await uploadFileToServer(image, flag);
+            console.log("Image file path:", imageFilePath);
 
-        // Upload multiple images to server for the image gallery
-        const galleryImages = req.files.imageGallery;
-        const galleryFilePaths = await uploadFilesToServer(galleryImages);
-        console.log("Image gallery file paths:", galleryFilePaths);
+            // Create data object with id and path
+            imageUrl = {
+                path: imageFilePath,
+                alt: slug,
+            };
+        }
 
-        // Create data objects with ids and paths
-        const imageUrl = {
-            id: uuidv4(),
-            path: imageFilePath
-        };
+        // Check for imageGallery in request
+        let imageGallery = [];
+        if (req.files && req.files.imageGallery) {
+            const galleryImages = req.files.imageGallery;
+            const galleryFilePaths = await uploadFilesToServer(Array.isArray(galleryImages) ? galleryImages : [galleryImages]);
+            console.log("Image gallery file paths:", galleryFilePaths);
 
-        const imageGallery = galleryFilePaths.map(filePath => ({
-            id: uuidv4(),
-            path: filePath
-        }));
+            // Create data objects for image gallery with ids and paths
+            imageGallery = galleryFilePaths.map(filePath => ({
+                path: filePath,
+                alt: slug,
+            }));
+        }
 
         // Saving entry in database
         const imageData = await Product.create({
@@ -93,8 +102,8 @@ exports.addProduct = async (req, res) => {
             isStock,
             isFeature,
             status,
-            imageUrl,  // Store object with id and path
-            imageGallery,  // Store array of objects with id and path
+            imageUrl,  // Store object with id and path (or null if not provided)
+            imageGallery,  // Store array of objects with id and path (or empty array if not provided)
             updatedAt: new Date()  // Update the updatedAt field
         });
 
@@ -113,6 +122,8 @@ exports.addProduct = async (req, res) => {
         });
     }
 }
+
+
 
 
 // Async function to update product details
@@ -186,7 +197,8 @@ exports.updateProduct = async (req, res) => {
             const imageFilePath = await uploadFileToServer(image, 0);
             updatedData.imageUrl = {
                 id: uuidv4(),
-                path: imageFilePath
+                path: imageFilePath,
+                alt:existingProduct.slug
             };
         }
 
@@ -202,7 +214,8 @@ exports.updateProduct = async (req, res) => {
             const galleryFilePaths = await uploadFilesToServer(galleryImages);
             updatedData.imageGallery = galleryFilePaths.map(filePath => ({
                 id: uuidv4(),
-                path: filePath
+                path: filePath,
+                alt:existingProduct.slug,
             }));
         }
 

@@ -1,5 +1,12 @@
 const mongoose = require('mongoose');
 
+const ImageSchema = new mongoose.Schema({
+    path: { type: String, required: true },
+    alt: { type: String }
+    // _id will be automatically generated
+  });
+  
+
 const productSchema = new mongoose.Schema({
     title: {
         type: String,
@@ -13,11 +20,10 @@ const productSchema = new mongoose.Schema({
     },
     description: {
         type: String,
-        required: true,
     },
     price: {
         type: Number,
-        required: true,
+        default: 0,
     },
     category: [{
         type: String,
@@ -25,28 +31,8 @@ const productSchema = new mongoose.Schema({
     brand: {
         type: String,
     },
-    imageUrl: {
-        id: {
-            type: String,
-        },
-        path: {
-            type: String,
-        },
-        alt:{
-            type: String,
-        }
-    },
-    imageGallery: [{
-        id: {
-            type: String,
-        },
-        path: {
-            type: String,
-        },
-        alt:{
-            type: String,
-        }
-    }],
+    imageUrl: ImageSchema,
+    imageGallery: [ImageSchema],
     metaTitle: {
         type: String,
     },
