@@ -15,13 +15,12 @@ function generateSlug(title) {
 async function uploadFileToServer(file, flag) {
     const fileName = file.name; // Use original file name
     let filePath;
-    if(flag === 0){
+    if (flag === 0) {
         filePath = path.join(__dirname, '../productFiles/image', fileName); // path of server
-    }
-    else{
+    } else {
         filePath = path.join(__dirname, '../productFiles/imageGallery', fileName); // path of server
     }
-    
+
     console.log("PATH -> ", filePath);
 
     // Use a promise to handle asynchronous file move
@@ -68,6 +67,7 @@ exports.addProduct = async (req, res) => {
 
             // Create data object with id and path
             imageUrl = {
+                id: uuidv4(),
                 path: imageFilePath,
                 alt: slug,
             };
@@ -82,6 +82,7 @@ exports.addProduct = async (req, res) => {
 
             // Create data objects for image gallery with ids and paths
             imageGallery = galleryFilePaths.map(filePath => ({
+                id: uuidv4(),
                 path: filePath,
                 alt: slug,
             }));
@@ -122,9 +123,6 @@ exports.addProduct = async (req, res) => {
         });
     }
 }
-
-
-
 
 // Async function to update product details
 exports.updateProduct = async (req, res) => {
@@ -211,7 +209,7 @@ exports.updateProduct = async (req, res) => {
             }
 
             const galleryImages = req.files.imageGallery;
-            const galleryFilePaths = await uploadFilesToServer(galleryImages);
+            const galleryFilePaths = await uploadFilesToServer(Array.isArray(galleryImages) ? galleryImages : [galleryImages]);
             updatedData.imageGallery = galleryFilePaths.map(filePath => ({
                 id: uuidv4(),
                 path: filePath,
@@ -237,9 +235,6 @@ exports.updateProduct = async (req, res) => {
     }
 };
 
-
-
-
 // For deleting a single image from the server
 function deleteFileFromServer(filePath) {
     return new Promise((resolve, reject) => {
@@ -258,11 +253,10 @@ async function deleteFilesFromServer(filePaths) {
     return Promise.all(deletePromises);
 }
 
-//For deleting the product
+// For deleting the product
 exports.deleteProduct = async (req, res) => {
     try {
         const { id } = req.params;
-
         console.log("id", id);
 
         // Find the product
@@ -278,14 +272,12 @@ exports.deleteProduct = async (req, res) => {
 
         // Delete the image from the server
         if (product.imageUrl && product.imageUrl.path) {
-            const imageFileName = path.basename(product.imageUrl.path);
-            const imageFilePath = path.join(__dirname, '../productFiles/image', imageFileName);
-            await deleteFileFromServer(imageFilePath);
+            await deleteFileFromServer(product.imageUrl.path);
         }
 
         // Delete image gallery from the server
         if (product.imageGallery && product.imageGallery.length > 0) {
-            const galleryFilePaths = product.imageGallery.map(file => path.join(__dirname, '../productFiles/imageGallery', path.basename(file.path)));
+            const galleryFilePaths = product.imageGallery.map(file => file.path);
             await deleteFilesFromServer(galleryFilePaths);
         }
 
@@ -307,10 +299,6 @@ exports.deleteProduct = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.status(400).json({
-            success: false,
-            message: "Something went wrong",
-        });
     }
 }
 
