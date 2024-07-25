@@ -179,4 +179,99 @@ This repository provides the backend API for an E-commerce platform, including e
    ```bash
    git clone https://github.com/yourusername/your-repository.git
    cd your-repository
-2. Install Dependencies:
+   
+2. **Navigate to the Project Directory**
+   cd your-repository
+   
+3. **Install Dependencies**
+   ```
+   npm install
+   
+4. **Set Up Environment Variables**
+   Create a `.env` file in the root directory and add the following variables:
+   JWT_SECRET=your_jwt_secret
+   MONGO_URI=your_mongo_uri
+
+5. **Start the Application**
+   npm run start     
+
+## API Endpoints
+
+### User Management
+- **POST /api/users**: Register a new user.
+- **GET /api/users**: Retrieve a list of users (Admin/Staff only).
+- **GET /api/users/:id**: Retrieve user by ID.
+- **PUT /api/users/:id**: Update user information.
+- **DELETE /api/users/:id**: Remove a user.
+- **POST /api/users/login**: Log in a user.
+- **POST /api/users/logout**: Log out a user.
+
+### Product Management
+- **POST /api/products**: Create a new product.
+- **GET /api/products**: Retrieve a list of products.
+- **GET /api/products/:id**: Retrieve product by ID.
+- **PUT /api/products/:id**: Update product details.
+- **DELETE /api/products/:id**: Remove a product.
+
+### Category & Brand Management
+- **POST /api/categories**: Add a new category.
+- **GET /api/categories**: Retrieve a list of categories.
+- **GET /api/categories/:id**: Retrieve category by ID.
+- **PUT /api/categories/:id**: Update category information.
+- **DELETE /api/categories/:id**: Delete a category.
+- **POST /api/brands**: Add a new brand.
+- **GET /api/brands**: Retrieve a list of brands.
+- **GET /api/brands/:id**: Retrieve brand by ID.
+- **PUT /api/brands/:id**: Update brand information.
+- **DELETE /api/brands/:id**: Delete a brand.
+
+### Order Processing
+- **POST /api/orders**: Create a new order.
+- **GET /api/orders**: Retrieve a list of orders.
+- **GET /api/orders/:id**: Retrieve order by ID.
+- **PUT /api/orders/:id**: Update order status.
+- **DELETE /api/orders/:id**: Cancel an order.
+
+### Cart & Wishlist
+- **POST /api/cart-items**: Add an item to the cart.
+- **GET /api/cart-items**: Retrieve cart items.
+- **DELETE /api/cart-items/:id**: Remove an item from the cart.
+- **POST /api/wishlist-items**: Add an item to the wishlist.
+- **GET /api/wishlist-items**: Retrieve wishlist items.
+- **DELETE /api/wishlist-items/:id**: Remove an item from the wishlist.
+
+### Coupons
+- **POST /api/coupons**: Create a new coupon.
+- **GET /api/coupons**: Retrieve a list of coupons.
+- **GET /api/coupons/:id**: Retrieve coupon by ID.
+- **PUT /api/coupons/:id**: Update coupon details.
+- **DELETE /api/coupons/:id**: Remove a coupon.
+
+### Shipments
+- **POST /api/shipments**: Create a new shipment.
+- **GET /api/shipments**: Retrieve shipment details.
+- **GET /api/shipments/:id**: Retrieve shipment by ID.
+- **PUT /api/shipments/:id**: Update shipment status.
+- **DELETE /api/shipments/:id**: Remove a shipment.
+
+### Reviews
+- **POST /api/reviews**: Submit a new review.
+- **GET /api/reviews**: Retrieve reviews.
+- **GET /api/reviews/:id**: Retrieve review by ID.
+- **PUT /api/reviews/:id**: Update a review.
+- **DELETE /api/reviews/:id**: Remove a review.
+
+## Pagination
+
+Endpoints like `/api/users` and `/api/products` support pagination with the following query parameters:
+- **page** (default: 1)
+- **limit** (default: 10)
+
+## Token Validation
+
+JWT tokens are required for accessing protected routes. Include the token in the `Authorization` header. Tokens are checked for expiration and validity.
+
+## Contributing
+
+We welcome contributions! Please fork the repository and submit a pull request with your changes.
+
