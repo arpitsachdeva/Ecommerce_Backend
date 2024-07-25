@@ -181,10 +181,11 @@ This repository provides the backend API for an E-commerce platform, including e
    cd your-repository
    
 2. **Navigate to the Project Directory**
+   ```bash
    cd your-repository
    
 3. **Install Dependencies**
-   ```
+   ```bash
    npm install
    
 4. **Set Up Environment Variables**
@@ -193,6 +194,7 @@ This repository provides the backend API for an E-commerce platform, including e
    MONGO_URI=your_mongo_uri
 
 5. **Start the Application**
+   ```bash
    npm run start     
 
 ## API Endpoints
