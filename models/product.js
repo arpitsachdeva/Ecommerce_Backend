@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
+const Category = require('./category')
 
 const ImageSchema = new mongoose.Schema({
     path: { type: String, required: true },
     alt: { type: String }
     // _id will be automatically generated
-  });
-  
+});
 
 const productSchema = new mongoose.Schema({
     title: {
@@ -17,6 +17,7 @@ const productSchema = new mongoose.Schema({
     },
     slug: {
         type: String,
+        unique: true,
     },
     description: {
         type: String,
@@ -26,7 +27,8 @@ const productSchema = new mongoose.Schema({
         default: 0,
     },
     category: [{
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
     }],
     brand: {
         type: String,

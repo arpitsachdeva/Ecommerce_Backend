@@ -2,23 +2,18 @@ const Product = require("../models/product");
 const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid'); // Import UUID library
-
-// For generating slug
-function generateSlug(title) {
-    return title
-        .toLowerCase()
-        .replace(/ /g, '-')
-        .replace(/[*+~.()'"!:@]+/g, '');
-}
+const generateSlug = require("./slugGenerator");
+const slugify = require("slugify");
 
 // For uploading image to server
 async function uploadFileToServer(file, flag) {
-    const fileName = file.name; // Use original file name
+    let slugName = slugify(file.name, {remove: /[*+~()'"!:@]/g})
+    const fileName = slugName;
     let filePath;
     if (flag === 0) {
-        filePath = path.join(__dirname, '../productFiles/image', fileName); // path of server
+        filePath = path.join(__dirname, '../public/productFiles/image', fileName); // path of server
     } else {
-        filePath = path.join(__dirname, '../productFiles/imageGallery', fileName); // path of server
+        filePath = path.join(__dirname, '../public/productFiles/imageGallery', fileName); // path of server
     }
 
     console.log("PATH -> ", filePath);
@@ -51,7 +46,7 @@ exports.addProduct = async (req, res) => {
 
         console.log(title, shortdec, description, price, category, brand, metaTitle, metaDec, isIndexed, isStock, isFeature, status);
 
-        const slug = generateSlug(title);
+        const slug = await generateSlug(title , Product);
         console.log("Generated slug:", slug);
 
         // Check for imageFile in request
@@ -314,7 +309,7 @@ exports.getAllProducts = async (req,res) => {
             return res.status(404).json({
                 success : false,
                 message: "Product not found",
-            })
+            });
         }
 
         return res.status(200).json({
@@ -329,7 +324,7 @@ exports.getAllProducts = async (req,res) => {
         res.status(400).json({
             success : false,
             message : "Something went wrong"
-        })
+        });
     }
 }
 
