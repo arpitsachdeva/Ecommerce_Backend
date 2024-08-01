@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const Category = require('./category')
 
 const ImageSchema = new mongoose.Schema({
     path: { type: String, required: true },
@@ -30,9 +29,10 @@ const productSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category',
     }],
-    brand: {
-        type: String,
-    },
+    brand: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
+    }],
     imageUrl: ImageSchema,
     imageGallery: [ImageSchema],
     metaTitle: {

@@ -29,6 +29,7 @@ const auth = async (req, res, next) => {
     }
 
     console.log("User found:", user);
+    res.locals.id = req.user.id;
     next();
   } catch (err) {
     console.log("Error in auth middleware:", err);

@@ -5,6 +5,10 @@ const userRoutes = require("./routes/userRoutes");
 const cookieParser = require("cookie-parser");
 const categoryRoutes = require("./routes/category");
 const imageRoute = require("./routes/imageRoutes");
+const brandRoute = require("./routes/brand");
+const cartRoute = require("./routes/cart");
+const wishlistRoute = require("./routes/wishlist");
+const couponRoute = require("./routes/coupon");
 
 //adding middleware
 app.use(express.json());
@@ -25,10 +29,16 @@ cloudinary.cloudinaryConnect();
 
 //mounting the api route
 const productRoutes = require('./routes/product');
+const { addCartItem } = require("./controllers/cartItem");
 app.use('/api/v1', productRoutes);
 app.use("/api/v1", userRoutes);
 app.use("/api/v1", categoryRoutes);
 app.use("/api/v1", imageRoute);
+app.use("/api/v1", brandRoute );
+app.use("/api/v1", cartRoute);
+app.use("/api/v1", wishlistRoute);
+app.use("/api/v1", couponRoute);
+
 
 //activating server
 const PORT = process.env.PORT || 3000;

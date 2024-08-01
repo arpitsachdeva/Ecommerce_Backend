@@ -1,4 +1,4 @@
-const Category = require("../models/category");
+const Brand = require("../models/brand");
 const fs = require('fs');
 const path = require('path');
 const { v4: uuid4} = require('uuid');
@@ -12,13 +12,13 @@ const slugify = require("slugify");
 
 //For uploading image to the server
 async function uploadFileToServer(file, flag) {
-    const slugName = slugify(file.name, {remove: /[*+~.()'"!:@]/g})
+    const slugName = slugify(file.name, {remove: /[*+~()'"!:@]/g});
     const fileName = slugName;
     let filePath;
     if (flag === 0){
-        filePath = path.join(__dirname, '../public/images/category', fileName); // path of server
+        filePath = path.join(__dirname, '../public/images/brand', fileName); // path of server
     } else {
-        filePath = path.join(__dirname, '../public/imageGallery/category', fileName); // path of server
+        filePath = path.join(__dirname, '../public/imageGallery/brand', fileName); // path of server
     }
 
     console.log("PATH -> ", filePath);
@@ -44,8 +44,8 @@ async function uploadFilesToServer(files) {
     return await Promise.all(uploads);
 }
 
-//Async funtion to add category
-exports.addCategory = async (req,res) => {
+//Async funtion to add brand
+exports.addBrand = async (req,res) => {
     try{
         const {title, parent_id, description, metaTitle,
             metaDec, meta_keywords, isIndexed, status, isDeleted} = req.body;
@@ -53,7 +53,7 @@ exports.addCategory = async (req,res) => {
         console.log("req bodyy", req.body)
         console.log("Start");
 
-        const slug = await generateSlug(title, Category);
+        const slug = await generateSlug(title, Brand);
         console.log("Slug : ", slug);
 
         //Check for image file in request
@@ -95,9 +95,12 @@ exports.addCategory = async (req,res) => {
 
         console.log("Image gallery", imageGallery)
         console.log("out of the loop")
+
         //Saving entry in database
-        const categoryData = await Category.create({
-            title,slug,parent_id,
+        const brandData = await Brand.create({
+            title,
+            slug,
+            parent_id,
             description,
             metaTitle: title,
             metaDec :description,
@@ -108,13 +111,13 @@ exports.addCategory = async (req,res) => {
             image: imageUrl,
             imageGallery
         });
-        console.log("Category data", categoryData);
+        console.log("Brand data", brandData);
 
         return res.status(200).json({
             success: true,
             status:200,
-            data: categoryData,
-            message:"Category created successfully",
+            data: brandData,
+            message:"Brand created successfully",
         })
 
     }catch(error){
@@ -145,8 +148,8 @@ async function deleteFilesFromServer(filePaths) {
     return Promise.all(deletePromises);
 }
 
-// Async function to update category
-exports.updateCategory = async (req, res) => {
+// Async function to update Brand
+exports.updateBrand = async (req, res) => {
     try {
         const { id } = req.params;
         const {
@@ -161,25 +164,25 @@ exports.updateCategory = async (req, res) => {
             isDeleted
         } = req.body;
 
-        // Find the existing category
-        const existingCategory = await Category.findById(id);
-        if (!existingCategory) {
+        // Find the existing Brand
+        const existingBrand = await Brand.findById(id);
+        if (!existingBrand) {
             return res.status(404).json({
                 success: false,
-                message: "Category not found",
+                message: "Brand not found",
                 status: 404,
             });
         }
 
-        let slug = existingCategory.slug;
-        if (title) {
-            slug = await generateSlug(title, Category);
-        }
+        let slug = existingBrand.slug;
+        // if (title) {
+        //     slug = await generateSlug(title, Brand);
+        // }
 
-        let imageUrl = existingCategory.image;
+        let imageUrl = existingBrand.image;
         if (req.files && req.files.imageFile) {
-            if (existingCategory.image && existingCategory.image.path) {
-                fs.unlinkSync(existingCategory.image.path); // Delete the old image
+            if (existingBrand.image && existingBrand.image.path) {
+                fs.unlinkSync(existingBrand.image.path); // Delete the old image
             }
 
             const image = req.files.imageFile;
@@ -191,10 +194,10 @@ exports.updateCategory = async (req, res) => {
             };
         }
 
-        let imageGallery = existingCategory.imageGallery;
+        let imageGallery = existingBrand.imageGallery;
         if (req.files && req.files.imageGallery) {
-            if (existingCategory.imageGallery && existingCategory.imageGallery.length > 0) {
-                existingCategory.imageGallery.forEach(image => {
+            if (existingBrand.imageGallery && existingBrand.imageGallery.length > 0) {
+                existingBrand.imageGallery.forEach(image => {
                     fs.unlinkSync(image.path); // Delete the old gallery images
                 });
             }
@@ -207,7 +210,7 @@ exports.updateCategory = async (req, res) => {
             }));
         }
 
-        const updatedCategory = await Category.findByIdAndUpdate(id, {
+        const updatedBrand = await Brand.findByIdAndUpdate(id, {
             title,
             slug,
             parent_id,
@@ -225,8 +228,8 @@ exports.updateCategory = async (req, res) => {
         return res.status(200).json({
             success: true,
             status: 200,
-            data: updatedCategory,
-            message: "Category updated successfully",
+            data: updatedBrand,
+            message: "Brand updated successfully",
         });
 
     } catch (error) {
@@ -239,31 +242,33 @@ exports.updateCategory = async (req, res) => {
     }
 };
 
-exports.deleteCategory = async (req, res) => {
+
+// Permanent delete
+exports.deleteBrand = async (req, res) => {
     try {
         const { id } = req.params;
 
-        // Find the category by ID
-        const category = await Category.findById(id);
-        if (!category) {
+        // Find the Brand by ID
+        const brand = await Brand.findById(id);
+        if (!brand) {
             return res.status(404).json({
                 success: false,
-                message: "Category not found",
+                message: "Brand not found",
                 status: 404,
             });
         }
 
         // Delete associated images from the server
-        if (category.image && category.image.path) {
-            fs.unlink(category.image.path, (err) => {
+        if (brand.image && brand.image.path) {
+            fs.unlink(brand.image.path, (err) => {
                 if (err) {
-                    console.error(`Failed to delete image file: ${category.image.path}`);
+                    console.error(`Failed to delete image file: ${Brand.image.path}`);
                 }
             });
         }
 
-        if (category.imageGallery && category.imageGallery.length > 0) {
-            category.imageGallery.forEach(image => {
+        if (brand.imageGallery && brand.imageGallery.length > 0) {
+            brand.imageGallery.forEach(image => {
                 fs.unlink(image.path, (err) => {
                     if (err) {
                         console.error(`Failed to delete gallery image file: ${image.path}`);
@@ -272,12 +277,12 @@ exports.deleteCategory = async (req, res) => {
             });
         }
 
-        // Delete the category from the database
-        await Category.findByIdAndDelete(id);
+        // Delete the Brand from the database
+        await Brand.findByIdAndDelete(id);
 
         return res.status(200).json({
             success: true,
-            message: "Category deleted successfully",
+            message: "Brand deleted successfully",
             status: 200,
         });
 
@@ -285,34 +290,39 @@ exports.deleteCategory = async (req, res) => {
         console.error(error);
         return res.status(500).json({
             success: false,
-            message: "An error occurred while deleting the category",
+            message: "An error occurred while deleting the Brand",
             status: 500,
         });
     }
 };
 
-
-exports.softDeleteCategory = async (req,res) => {
+// Soft Delete
+exports.softDeleteBrand = async (req,res) => {
     try{
 
         const {id} = req.params;
 
-        const existingCategory = Category.findById(id);
+        const existingBrand = Brand.findById(id);
 
-        if(!existingCategory){
+        if(!existingBrand){
             return res.status(404).json({
                 success: false,
                 status: 404,
-                message: "No such Category exists"
+                message: "No such Brand exists"
             })
         }
 
-        existingCategory.isDeleted = true;
+        const isDeleted = true;
+
+        const updatedBrand = await Brand.findByIdAndUpdate(id, {
+            isDeleted
+        }, { new: true });
+
 
         return res.status(200).json({
             success: true,
             status: 200,
-            message: "Category deleted successfully",
+            message: "Brand deleted successfully",
         })
 
     }catch(error){
@@ -325,9 +335,9 @@ exports.softDeleteCategory = async (req,res) => {
 
     }
 }
-//GET List of Categories
+//GET List of Brands
 
-exports.getAllCategories = async (req,res) => {
+exports.getAllBrands = async (req,res) => {
     try{
         const searchName = req.query.name || '';
         const page = parseInt(req.query.page) || 1;
@@ -340,13 +350,13 @@ exports.getAllCategories = async (req,res) => {
             'title' : {$regex: nameRegex}
         };
 
-        const data = await Category.find(query);
-        console.log("Data for category", data);
+        const data = await Brand.find(query);
+        console.log("Data for Brand", data);
         if(!data) {
-            return res.status(404).json({
+            res.status(404).json({
                 success: false,
                 status: 404,
-                message: "No category found"
+                message: "No Brand found"
             })
         }
 
@@ -359,18 +369,16 @@ exports.getAllCategories = async (req,res) => {
             })
         }
 
-
-
-        const categories = await Category.find(query).skip(startIndex).limit(limit).exec(); //Filters can also be applied later
+        const Brands = await Brand.find(query).skip(startIndex).limit(limit).exec(); //Filters can also be applied later
 
         res.status(200).json({
             success: true,
             status : 200,
-            message: "Categories found",
+            message: "Brands found",
             page,
             perPage: limit,
             totalPages: totalPages,
-            data: categories,
+            data: Brands,
 
         })
         
@@ -384,26 +392,26 @@ exports.getAllCategories = async (req,res) => {
     }
 }
 
-//GET CATEGORY BY ID
+//GET Brand BY ID
 
-exports.getCategoryById = async (req,res) => {
+exports.getBrandById = async (req,res) => {
     try{
 
         const {id} = req.params;
-        const category = await Category.findById(id);
-        if(!category){
+        const brand = await Brand.findById(id);
+        if(!brand || brand.isDeleted === true){
             return res.status(404).json({
                 success: false,
                 status: 404,
-                message:"Category not found",
+                message:"Brand not found",
             })
         }
 
         return res.status(200).json({
             success: true,
             status: 200,
-            message: "Category found",
-            data: category,
+            message: "Brand found",
+            data: brand,
         })
 
     }catch(error){

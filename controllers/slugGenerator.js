@@ -1,6 +1,7 @@
+const slugify = require("slugify");
 
 async function generateSlug(title, model) {
-    let slug = title.toLowerCase().replace(/ /g, '-').replace(/[*+~.()'"!:@]+/g, '');
+    let slug = slugify(title, {remove: /[*+~().'"!:@]/g , lower:true} );
 
     // Check if the slug already exists in the database
     let slugExists = await model.exists({ slug });

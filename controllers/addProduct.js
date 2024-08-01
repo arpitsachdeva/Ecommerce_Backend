@@ -7,13 +7,13 @@ const slugify = require("slugify");
 
 // For uploading image to server
 async function uploadFileToServer(file, flag) {
-    let slugName = slugify(file.name, {remove: /[*+~()'"!:@]/g})
+    let slugName = slugify(file.name, {remove: /[*+~()'"!:@]/g});
     const fileName = slugName;
     let filePath;
     if (flag === 0) {
-        filePath = path.join(__dirname, '../public/productFiles/image', fileName); // path of server
+        filePath = path.join(__dirname, '../public/images/product', fileName); // path of server
     } else {
-        filePath = path.join(__dirname, '../public/productFiles/imageGallery', fileName); // path of server
+        filePath = path.join(__dirname, '../public/imageGallery/product', fileName); // path of server
     }
 
     console.log("PATH -> ", filePath);
