@@ -1,9 +1,38 @@
 const Coupon = require("../models/coupon");
-const { checkout } = require("../routes/category");
+const Product = require("../models/product");
+const Category = require("../models/category");
 
 exports.addCoupon = async (req, res) => {
     try {
         const {title, code, description, type, amount, min_checkout_amount, max_coupon_amount, start_date, expiry_date, products, categories} = req.body;
+
+        //Validate Products
+        if(products){
+            for(let i=0 ; i< products.length; i++){
+                const product = await Product.findById(products[i]);
+                if(!product) {
+                    return res.status(400).json({
+                        success: false,
+                        status: 400,
+                        message: `Product ID ${products[i]} does not exist`,
+                    });
+                }
+            }
+        }
+
+        if(categories){
+            for (let i = 0; i < categories.length; i++) {
+                const category = await Category.findById(categories[i]);
+                if (!category) {
+                    return res.status(400).json({
+                        success: false,
+                        status: 400,
+                        message: `Category ID ${categories[i]} does not exist`,
+                    });
+                }
+            }
+        }
+
 
         const coupon = new Coupon({
             title, code, description, type, amount, min_checkout_amount, max_coupon_amount, start_date, expiry_date, products, categories

@@ -4,6 +4,9 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid'); // Import UUID library
 const generateSlug = require("./slugGenerator");
 const slugify = require("slugify");
+const Category = require('../models/category');
+const Brand = require('../models/brand');
+const mongoose = require('mongoose');
 
 // For uploading image to server
 async function uploadFileToServer(file, flag) {
@@ -42,11 +45,11 @@ async function uploadFilesToServer(files) {
 // Async function to add product
 exports.addProduct = async (req, res) => {
     try {
-        const { title, shortdec, description, price, category, brand, metaTitle, metaDec, isIndexed, isStock, isFeature, status } = req.body;
+        const { title, shortdec, description, price, categories, brands, metaTitle, metaDec, isIndexed, isStock, isFeature, status } = req.body;
 
-        console.log(title, shortdec, description, price, category, brand, metaTitle, metaDec, isIndexed, isStock, isFeature, status);
+        console.log(title, shortdec, description, price, categories, brands, metaTitle, metaDec, isIndexed, isStock, isFeature, status);
 
-        const slug = await generateSlug(title , Product);
+        const slug = await generateSlug(title, Product);
         console.log("Generated slug:", slug);
 
         // Check for imageFile in request
@@ -83,6 +86,7 @@ exports.addProduct = async (req, res) => {
             }));
         }
 
+
         // Saving entry in database
         const imageData = await Product.create({
             title,
@@ -90,17 +94,17 @@ exports.addProduct = async (req, res) => {
             slug,
             description,
             price,
-            category,
-            brand,
+            category: categories,
+            brand: brands,
             metaTitle: title,
             metaDec: description,
             isIndexed,
             isStock,
             isFeature,
             status,
-            imageUrl,  // Store object with id and path (or null if not provided)
-            imageGallery,  // Store array of objects with id and path (or empty array if not provided)
-            updatedAt: new Date()  // Update the updatedAt field
+            imageUrl,
+            imageGallery,
+            updatedAt: new Date()
         });
 
         res.status(200).json({
@@ -303,21 +307,50 @@ exports.deleteProduct = async (req, res) => {
 exports.getAllProducts = async (req,res) => {
     try{
 
-        const productList = await Product.find();
-        console.log(productList);
-        if(!productList){
+        const searchName = req.query.name || '';
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const startIndex = (page - 1) * limit;
+        const nameRegex = new RegExp(searchName , 'i');
+
+        const query = {
+            'title' : {$regex: nameRegex}
+        };
+
+        const data = await Product.find(query);
+
+       
+        console.log("Data for products", data);
+        if(!data) {
             return res.status(404).json({
-                success : false,
-                message: "Product not found",
-            });
+                success: false,
+                status: 404,
+                message: "No product found"
+            })
         }
 
-        return res.status(200).json({
+        const total = data.length;
+        const totalPages = Math.ceil(total / limit);
+
+        if(page > totalPages){
+            return res.status(404).json({
+                message: "Page not found",
+            })
+        }
+
+        const products = await Product.find(query).skip(startIndex).limit(limit).exec(); //Filters can also be applied later
+
+        res.status(200).json({
             success: true,
-            data: productList,
-            status: 200,
-            message: "List of products found"
+            status : 200,
+            message: "Products found",
+            page,
+            perPage: limit,
+            totalPages: totalPages,
+            data: products,
+
         })
+        
 
 
     }catch(error){

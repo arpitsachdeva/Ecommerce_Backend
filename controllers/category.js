@@ -12,7 +12,7 @@ const slugify = require("slugify");
 
 //For uploading image to the server
 async function uploadFileToServer(file, flag) {
-    const slugName = slugify(file.name, {remove: /[*+~.()'"!:@]/g})
+    const slugName = slugify(file.name, {remove: /[*+~()'"!:@]/g})
     const fileName = slugName;
     let filePath;
     if (flag === 0){
@@ -172,9 +172,9 @@ exports.updateCategory = async (req, res) => {
         }
 
         let slug = existingCategory.slug;
-        if (title) {
-            slug = await generateSlug(title, Category);
-        }
+        // if (title) {
+        //     slug = await generateSlug(title, Category);
+        // }
 
         let imageUrl = existingCategory.image;
         if (req.files && req.files.imageFile) {
@@ -209,7 +209,6 @@ exports.updateCategory = async (req, res) => {
 
         const updatedCategory = await Category.findByIdAndUpdate(id, {
             title,
-            slug,
             parent_id,
             description,
             metaTitle,
