@@ -10,10 +10,22 @@ const cartSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Product',
     },
-    product:{
+    productName:{
         type: String,
     },
     quantity:{
+        type: Number,
+    },
+    amountPerPiece:{
+        type: Number,
+    },
+    discountPerPiece:{
+        type: Number,
+    },
+    totalPriceOfCartItem:{
+        type: Number,
+    },
+    totalDiscountofCartItem:{
         type: Number,
     },
     createdAt:{

@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { addProduct, updateProduct, deleteProduct, getAllProducts, getProductDetails } = require("../controllers/addProduct");
+const { addProduct, updateProduct, deleteProduct, getAllProducts, getProductDetails } = require("../controllers/product");
 const { getAllCountryNames, getStatesByCountry, getCitiesByStateAndCountry } = require("../controllers/getLocation");
 const authMiddleware = require("../middlewares/authMiddleware");
 

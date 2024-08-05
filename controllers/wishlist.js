@@ -123,13 +123,15 @@ exports.wishlistDetails = async (req,res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const searchName = req.query.name || '';
+        const id = req.query.id;
         const skipThis = (page-1) * limit;
 
         const nameRegex = new RegExp(searchName, 'i');
 
         const query = {
             'user_id' : user_id,
-            'name' : {$regex : nameRegex}
+            // 'name' : {$regex : nameRegex},
+            '_id': id,
         };
 
         const data = await Wishlist.find(query);
@@ -157,17 +159,17 @@ exports.wishlistDetails = async (req,res) => {
             })
         }
 
-        const wishlistItems = await Wishlist.find(query).skip(skipThis).limit(limit).exec();
+        const wishlistItems = await Wishlist.find(query).skip(skipThis).limit(limit).populate('product_ids').exec();
         
-        const products = [];
-        for (const wishlist of wishlistItems) {
-            for (const productId of wishlist.product_ids) {
-                const product = await Product.findById(productId).lean(); // Fetch product object and convert to plain JS object
-                if (product) {
-                    products.push(product);
-                }
-            }
-        }
+        // const products = [];
+        // for (const wishlist of wishlistItems) {
+        //     for (const product_id of wishlist.product_ids) {
+        //         const product = await Product.findById(product_id).lean(); // Fetch product object and convert to plain JS object
+        //         if (product) {
+        //             products.push(product);
+        //         }
+        //     }
+        // }
 
         return res.status(200).json({
             success: true,
@@ -193,47 +195,118 @@ exports.wishlistDetails = async (req,res) => {
 }
 
 
-// exports.wishlistList = async (req, res) => {
-//     try {
-//         const user_id = res.locals.id; // Assuming user ID is stored in res.locals
+exports.wishlistList = async (req, res) => {
+    try {
+        const user_id = res.locals.id; // Assuming user ID is stored in res.locals
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const searchName = req.query.name || '';
+        const skip = (page - 1) * limit;
+
+        // Use a regular expression to search for wishlist names
+        const nameRegex = new RegExp(searchName, 'i');
+
+        // Query to find the user's wishlist with optional name filtering
+        const query = {
+            'user_id': user_id,
+            'name': { $regex: nameRegex }
+        };
+
+        // Find wishlist items, populate product details, and paginate
+        const total = await Wishlist.countDocuments(query);
+        const totalPages = Math.ceil(total / limit);
+
+        if (page > totalPages && totalPages !== 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Page not found",
+                status: 404,
+            });
+        }
+
+        const wishlistItems = await Wishlist.find(query)
+            .skip(skip)
+            .limit(limit)
+            .populate('product_ids')  // Populate the product_ids field with product documents
+            .exec();
+
+        if (!wishlistItems || wishlistItems.length === 0) {
+            return res.status(404).json({
+                success: false,
+                status: 404,
+                message: "No wishlist items found",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            status: 200,
+            message: "Wishlist items found",
+            page,
+            perPage: limit,
+            totalPages,
+            data: wishlistItems,  // The populated product details are included in the wishlistItems
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            status: 500,
+            message: "Internal server error",
+        });
+    }
+};
+
+
+//Getting list of wishlists
+// exports.wishlistList = async (req,res) => {
+//     try{
+
+//         const user_id = res.locals.id;
 //         const page = parseInt(req.query.page) || 1;
 //         const limit = parseInt(req.query.limit) || 10;
-//         const searchName = req.query.name || '';
-//         const skip = (page - 1) * limit;
+//         const skipThis = (page-1) * limit;
 
-//         // Use a regular expression to search for wishlist names
-//         const nameRegex = new RegExp(searchName, 'i');
-
-//         // Query to find the user's wishlist with optional name filtering
 //         const query = {
-//             'user_id': user_id,
-//             'name': { $regex: nameRegex }
+//             'user_id' : user_id
 //         };
 
-//         // Find wishlist items, populate product details, and paginate
-//         const total = await Wishlist.countDocuments(query);
-//         const totalPages = Math.ceil(total / limit);
+//         const data = await Wishlist.find(query);
+//         console.log("Wish lists", data);
 
-//         if (page > totalPages && totalPages !== 0) {
+        
+        
+//         if(!data){
+//             return res.status(404).json({
+//                 success: false,
+//                 status: 404,
+//                 message: "No wishlist found",
+//             })
+//         }
+
+//         const total = data.length;
+//         const totalPages = Math.ceil(total/limit);
+
+
+//         if(page>totalPages){
 //             return res.status(404).json({
 //                 success: false,
 //                 message: "Page not found",
 //                 status: 404,
-//             });
+//             })
 //         }
 
-//         const wishlistItems = await Wishlist.find(query)
-//             .skip(skip)
-//             .limit(limit)
-//             .populate('product_ids')  // Populate the product_ids field with product documents
-//             .exec();
-
-//         if (!wishlistItems || wishlistItems.length === 0) {
-//             return res.status(404).json({
-//                 success: false,
-//                 status: 404,
-//                 message: "No wishlist items found",
-//             });
+//         const wishlistItems = await Wishlist.find(query).skip(skipThis).limit(limit).exec();
+        
+//         const products = [];
+//         for (const wishlist of wishlistItems) {
+//             for (const productId of wishlist.product_ids) {
+//                 const product = await Product.findById(productId).lean(); // Fetch product object and convert to plain JS object
+//                 if (product) {
+//                     products.push(product);
+//                 }
+//             }
 //         }
 
 //         return res.status(200).json({
@@ -243,92 +316,21 @@ exports.wishlistDetails = async (req,res) => {
 //             page,
 //             perPage: limit,
 //             totalPages,
-//             data: wishlistItems,  // The populated product details are included in the wishlistItems
-//         });
+//             data: wishlistItems,
+//         })
 
-//     } catch (error) {
-//         console.error(error);
+
+//     }catch(error){
+
 //         res.status(500).json({
-//             success: false,
+//             succesS: false,
 //             status: 500,
 //             message: "Internal server error",
-//         });
+//         })
+
+
 //     }
-// };
-
-
-//Getting list of wishlists
-exports.wishlistList = async (req,res) => {
-    try{
-
-        const user_id = res.locals.id;
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-        const skipThis = (page-1) * limit;
-
-        const query = {
-            'user_id' : user_id
-        };
-
-        const data = await Wishlist.find(query);
-        console.log("Wish lists", data);
-
-        
-        
-        if(!data){
-            return res.status(404).json({
-                success: false,
-                status: 404,
-                message: "No wishlist found",
-            })
-        }
-
-        const total = data.length;
-        const totalPages = Math.ceil(total/limit);
-
-
-        if(page>totalPages){
-            return res.status(404).json({
-                success: false,
-                message: "Page not found",
-                status: 404,
-            })
-        }
-
-        const wishlistItems = await Wishlist.find(query).skip(skipThis).limit(limit).exec();
-        
-        const products = [];
-        for (const wishlist of wishlistItems) {
-            for (const productId of wishlist.product_ids) {
-                const product = await Product.findById(productId).lean(); // Fetch product object and convert to plain JS object
-                if (product) {
-                    products.push(product);
-                }
-            }
-        }
-
-        return res.status(200).json({
-            success: true,
-            status: 200,
-            message: "Wishlist items found",
-            page,
-            perPage: limit,
-            totalPages,
-            data: wishlistItems,
-        })
-
-
-    }catch(error){
-
-        res.status(500).json({
-            succesS: false,
-            status: 500,
-            message: "Internal server error",
-        })
-
-
-    }
-}
+// }
 
 //Deleting a wishlist
 exports.deleteWishlist = async (req,res) => {

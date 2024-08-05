@@ -45,10 +45,6 @@ const productSchema = new mongoose.Schema({
         type: Boolean,
         default: true,
     },
-    isStock: {
-        type: Boolean,
-        default: false,
-    },
     isFeature: {
         type: Boolean,
         default: false,
@@ -56,6 +52,22 @@ const productSchema = new mongoose.Schema({
     status: {
         type: Boolean,
         default: false,
+    },
+    inStock:{
+        type: Number,
+    },
+    discountType:{
+        type: Number,
+        enum: ['flat', 'percentage'],
+    },
+    discountAmount:{
+        type:Number
+    },
+    discountPrice:{
+        type: Number,
+    },
+    netAmount:{
+        type: Number,
     },
     createdAt: {
         type: Date,

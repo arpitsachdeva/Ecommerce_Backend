@@ -9,9 +9,12 @@ const Brand = require('../models/brand');
 const mongoose = require('mongoose');
 
 // For uploading image to server
-async function uploadFileToServer(file, flag) {
-    let slugName = slugify(file.name, {remove: /[*+~()'"!:@]/g});
-    const fileName = slugName;
+async function uploadFileToServer(file, flag, slug) {
+    let name = slug + file.name;
+    console.log("Namename nameee", name);
+    console.log("image file nameee", file.name);
+    let slugName = slugify(name, {remove: /[*+~()'"!:@]/g , lower:true});
+    const fileName = slugName ;
     let filePath;
     if (flag === 0) {
         filePath = path.join(__dirname, '../public/images/product', fileName); // path of server
@@ -33,24 +36,45 @@ async function uploadFileToServer(file, flag) {
 }
 
 // For uploading multiple images to server
-async function uploadFilesToServer(files) {
+async function uploadFilesToServer(files, slug) {
     if (!files || !Array.isArray(files)) {
         return []; // Return an empty array if no files are provided
     }
     const flag = 1;
-    const uploads = files.map(file => uploadFileToServer(file, flag));
+    const uploads = files.map(file => uploadFileToServer(file, flag, slug));
     return await Promise.all(uploads);
 }
 
 // Async function to add product
 exports.addProduct = async (req, res) => {
     try {
-        const { title, shortdec, description, price, categories, brands, metaTitle, metaDec, isIndexed, isStock, isFeature, status } = req.body;
+        const { title, shortdec, description, price, categories, brands, metaTitle, metaDec, isIndexed, isStock, isFeature, status, inStock, discountType, discountAmount} = req.body;
 
-        console.log(title, shortdec, description, price, categories, brands, metaTitle, metaDec, isIndexed, isStock, isFeature, status);
+        console.log(title, shortdec, description, price, categories, brands, metaTitle, metaDec, isIndexed, isStock, isFeature, status,  inStock, discountType, discountAmount);
 
         const slug = await generateSlug(title, Product);
         console.log("Generated slug:", slug);
+
+        if(!inStock){
+            inStock = 1;
+        }
+
+        let netAmount;
+        let discountPrice;
+
+        if(discountType && discountType === "flat"){
+            if(discountAmount){
+                discountPrice = discountAmount;
+                netAmount = price - discountAmount;
+            }
+        }
+        else if(discountType && discountType === "percentage"){
+            if(discountAmount){
+                const discount = (price * discountAmount)/100;
+                discountPrice = discount;
+                netAmount = price - discount;
+            }
+        }
 
         // Check for imageFile in request
         let imageUrl = null;
@@ -60,7 +84,7 @@ exports.addProduct = async (req, res) => {
 
             // Upload image to server
             const flag = 0;
-            const imageFilePath = await uploadFileToServer(image, flag);
+            const imageFilePath = await uploadFileToServer(image, flag, slug);
             console.log("Image file path:", imageFilePath);
 
             // Create data object with id and path
@@ -75,7 +99,7 @@ exports.addProduct = async (req, res) => {
         let imageGallery = [];
         if (req.files && req.files.imageGallery) {
             const galleryImages = req.files.imageGallery;
-            const galleryFilePaths = await uploadFilesToServer(Array.isArray(galleryImages) ? galleryImages : [galleryImages]);
+            const galleryFilePaths = await uploadFilesToServer(Array.isArray(galleryImages) ? galleryImages : [galleryImages], slug);
             console.log("Image gallery file paths:", galleryFilePaths);
 
             // Create data objects for image gallery with ids and paths
@@ -94,16 +118,18 @@ exports.addProduct = async (req, res) => {
             slug,
             description,
             price,
+            netAmount,
             category: categories,
             brand: brands,
             metaTitle: title,
             metaDec: description,
             isIndexed,
-            isStock,
+            inStock,
             isFeature,
             status,
             imageUrl,
             imageGallery,
+            discountPrice,
             updatedAt: new Date()
         });
 
@@ -159,7 +185,7 @@ exports.updateProduct = async (req, res) => {
 
         if (title) {
             updatedData.title = title;
-            updatedData.slug = generateSlug(title);
+            // updatedData.slug = generateSlug(title);
             updatedData.metaTitle = title;
         }
         if (shortdec) {
@@ -191,7 +217,9 @@ exports.updateProduct = async (req, res) => {
             }
 
             const image = req.files.imageFile;
-            const imageFilePath = await uploadFileToServer(image, 0);
+            const slug = existingProduct.slug;
+
+            const imageFilePath = await uploadFileToServer(image, 0, slug);
             updatedData.imageUrl = {
                 id: uuidv4(),
                 path: imageFilePath,
@@ -208,7 +236,8 @@ exports.updateProduct = async (req, res) => {
             }
 
             const galleryImages = req.files.imageGallery;
-            const galleryFilePaths = await uploadFilesToServer(Array.isArray(galleryImages) ? galleryImages : [galleryImages]);
+            const slug = existingProduct.slug;
+            const galleryFilePaths = await uploadFilesToServer(Array.isArray(galleryImages) ? galleryImages : [galleryImages], slug);
             updatedData.imageGallery = galleryFilePaths.map(filePath => ({
                 id: uuidv4(),
                 path: filePath,

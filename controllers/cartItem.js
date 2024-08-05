@@ -4,7 +4,7 @@ const Product = require("../models/product");
 exports.addCartItem = async (req,res) => {
     try{
 
-        const {product_id} = req.body;
+        const {product_id , quantity} = req.body;
 
         console.log("req body", req.body);
         
@@ -13,7 +13,7 @@ exports.addCartItem = async (req,res) => {
         console.log("Product: ", product);
 
         if(!product){
-            res.status(404).json({
+            return res.status(404).json({
                 success: false,
                 message:"No such product to add to cart",
                 status: 404,
@@ -33,15 +33,25 @@ exports.addCartItem = async (req,res) => {
             });
         }
 
-
-        const quantity = 1;
-
+        if(!quantity){
+            quantity = 1;
+        }
         
+        const amountPerPiece = product.netAmount;
+        const discountPerPiece = product.discountPrice;
+        const totalPriceOfCartItem = amountPerPiece * quantity;
+        const totalDiscountofCartItem = discountPerPiece * quantity;
+        const productName = product.title;
+        console.log("product id",product_id)
         const cartItemData = await Cart.create({
             user_id,
             product_id,
-            product,
-            quantity
+            productName,
+            quantity,
+            amountPerPiece,
+            discountPerPiece,
+            totalPriceOfCartItem,
+            totalDiscountofCartItem,
         });
 
         console.log("cart",cartItemData);
@@ -86,12 +96,17 @@ exports.updateCartItem = async (req,res) => {
 
         if(task === "add"){
             newQuantity+= 1;
+            totalPriceOfCartItem += amountPerPiece;
+            totalDiscountofCartItem += discountPerPiece;
+            
         }
         else if (task === "remove" && newQuantity > 1) { 
             newQuantity -= 1;
+            totalPriceOfCartItem -= amountPerPiece;
+            totalDiscountofCartItem -= discountPerPiece;
         }
 
-        const updatedCart = await Cart.findByIdAndUpdate(id, {quantity: newQuantity, updatedAt: Date.now()}, {new:true});
+        const updatedCart = await Cart.findByIdAndUpdate(id, {quantity: newQuantity, updatedAt: Date.now(), totalDiscountofCartItem, totalPriceOfCartItem}, {new:true});
 
         return res.status(200).json({
             success: true,
@@ -150,6 +165,7 @@ exports.getAllCartItems = async (req,res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const startIndex = (page - 1) * limit;
+        // const user_id = req.user_id;
 
         const query = {
             'user_id': user_id
@@ -179,7 +195,7 @@ exports.getAllCartItems = async (req,res) => {
             })
         }
 
-        const cartItems = await Cart.find(query).skip(startIndex).limit(limit).exec(); //Filters can also be applied later
+        const cartItems = await Cart.find(query).skip(startIndex).limit(limit).populate("product_id").exec(); //Filters can also be applied later
 
         res.status(200).json({
             success: true,

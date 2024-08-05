@@ -9,6 +9,10 @@ const brandRoute = require("./routes/brand");
 const cartRoute = require("./routes/cart");
 const wishlistRoute = require("./routes/wishlist");
 const couponRoute = require("./routes/coupon");
+const addressRoute = require('./routes/address');
+const orderRoute = require('./routes/order');
+const shipmentRoute = require('./routes/shipment');
+
 
 //adding middleware
 app.use(express.json());
@@ -38,6 +42,9 @@ app.use("/api/v1", brandRoute );
 app.use("/api/v1", cartRoute);
 app.use("/api/v1", wishlistRoute);
 app.use("/api/v1", couponRoute);
+app.use("/api/v1", addressRoute);
+app.use("/api/v1", orderRoute);
+app.use("/api/v1", shipmentRoute);
 
 
 //activating server
