@@ -12,7 +12,7 @@ const couponRoute = require("./routes/coupon");
 const addressRoute = require('./routes/address');
 const orderRoute = require('./routes/order');
 const shipmentRoute = require('./routes/shipment');
-
+const reviewRoute = require('./routes/review');
 
 //adding middleware
 app.use(express.json());
@@ -45,6 +45,7 @@ app.use("/api/v1", couponRoute);
 app.use("/api/v1", addressRoute);
 app.use("/api/v1", orderRoute);
 app.use("/api/v1", shipmentRoute);
+app.use("/api/v1", reviewRoute);
 
 
 //activating server

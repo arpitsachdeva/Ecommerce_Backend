@@ -6,7 +6,7 @@ const checkAdmin = require("../middlewares/isAdmin");
 
 router.post("/cart",authMiddleware ,addCartItem);
 router.put("/cart", updateCartItem);
-router.delete("/cart/:id", authMiddleware, checkAdmin, deleteCartItem);
+router.delete("/cart/:id", authMiddleware, deleteCartItem);
 router.get("/cart",authMiddleware ,getAllCartItems);
 
 module.exports = router;

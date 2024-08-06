@@ -3,11 +3,12 @@ const router = express.Router();
 const { addProduct, updateProduct, deleteProduct, getAllProducts, getProductDetails } = require("../controllers/product");
 const { getAllCountryNames, getStatesByCountry, getCitiesByStateAndCountry } = require("../controllers/getLocation");
 const authMiddleware = require("../middlewares/authMiddleware");
+const checkAdmin = require("../middlewares/isAdmin");
 
 //Write API requests here
 
-router.post("/product" ,authMiddleware , addProduct );
-router.put("/product/:id", authMiddleware ,updateProduct);
+router.post("/product" ,authMiddleware ,checkAdmin , addProduct );
+router.put("/product/:id", authMiddleware ,checkAdmin ,updateProduct);
 router.delete("/product/:id", authMiddleware , deleteProduct);
 router.get("/product", getAllProducts);
 router.get("/product/:id", getProductDetails)

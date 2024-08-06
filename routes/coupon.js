@@ -9,11 +9,14 @@ const {
     applyCoupon
 } = require("../controllers/coupon");
 
-router.post("/coupons", addCoupon);
-router.put("/coupons/:id", updateCoupon);
+const authMiddleware = require("../middlewares/authMiddleware");
+const checkAdmin = require("../middlewares/isAdmin");
+
+router.post("/coupons",authMiddleware,checkAdmin, addCoupon);
+router.put("/coupons/:id", authMiddleware,checkAdmin, updateCoupon);
 router.get("/coupons/:id", getCoupon);
 router.get("/coupons", getAllCoupons);
-router.delete("/coupons/:id", deleteCoupon);
-router.post("/applyCoupon", applyCoupon);
+router.delete("/coupons/:id",authMiddleware,checkAdmin, deleteCoupon);
+router.post("/applyCoupon",authMiddleware, applyCoupon);
 
 module.exports = router;
